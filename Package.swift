@@ -3,5 +3,8 @@
 import PackageDescription
 
 let package = Package(
-    name: "Mockr"
+   name: "Mockr"
+   , dependencies: [
+      .Package(url: "https://github.com/oarrabi/FileUtils.git", majorVersion: 0)
+   ]
 )
