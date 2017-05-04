@@ -74,7 +74,11 @@ class ProtocolElementLineParser {
       let parametersString: String
       if genericTypeOrParametersString.hasPrefix("<") {
          genericTypeParams = genericTypeOrParametersString
-         parametersString = (line as NSString).substring(with: match.rangeAt(matchIndex))
+         if matchIndex < match.numberOfRanges {
+            parametersString = (line as NSString).substring(with: match.rangeAt(matchIndex))
+         } else {
+            parametersString = ""
+         }
          nextMatch()
       } else {
          genericTypeParams = nil
@@ -85,9 +89,10 @@ class ProtocolElementLineParser {
       config.debug("parametersString: \(parametersString)")
 
       //TODO: Handle tuple types for parameters
-      let parameterStringParts: [String] = parametersString.components(separatedBy: CharacterSet(charactersIn: ","))
+      let parameterStringParts: [String] = parametersString.isEmpty ? [] : parametersString.components(separatedBy: CharacterSet(charactersIn: ","))
       let parameters: [(outerLabel: String, name: String, type: String)] = parameterStringParts
-         .map { paramString in
+         .flatMap { paramString in
+            guard !paramString.isEmpty else { return nil }
             let paramParts = paramString.components(separatedBy: CharacterSet(charactersIn: ":"))
                .map { s in s.trimmingCharacters(in: CharacterSet.whitespaces) }
             let namesPart = paramParts[0]
