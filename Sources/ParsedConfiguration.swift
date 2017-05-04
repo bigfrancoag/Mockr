@@ -6,6 +6,7 @@ class ParsedConfiguration : Configuration {
    let isVerbose: Bool
    let isDebug: Bool
    let isRecursive: Bool
+   let importPackages: [String]
 
    static let usage = "Mockr - Generate mocks for protocols\n" +
       "\n" +
@@ -19,6 +20,7 @@ class ParsedConfiguration : Configuration {
       "\n" +
       "Options:\n" +
       String(format: "\t%@ %@\n", "-r --recursive".padding(toLength: 17, withPad: " ", startingAt: 0), "Search recursively") +
+      String(format: "\t%@ %@\n", "-p --import-package".padding(toLength: 17, withPad: " ", startingAt: 0), "Add an import package to the mock. (multiple allowed)") +
       String(format: "\t%@ %@\n", "-h --help".padding(toLength: 17, withPad: " ", startingAt: 0), "Show this usage screen") + 
       String(format: "\t%@ %@\n", "-v --verbose".padding(toLength: 17, withPad: " ", startingAt: 0), "Enable verbose logging") + 
       String(format: "\t%@ %@\n", "--debug".padding(toLength: 17, withPad: " ", startingAt: 0), "Enable debug mode") 
@@ -27,6 +29,7 @@ class ParsedConfiguration : Configuration {
       case normal
       case inputDir
       case outputDir
+      case packages
    }
 
    enum Error : Swift.Error {
@@ -46,26 +49,31 @@ class ParsedConfiguration : Configuration {
       var verbose: Bool? = nil
       var debug: Bool? = nil
       var recursive: Bool? = nil
+      var packages: [String] = []
 
       for opt in opts {
          switch optMode {
-            case .inputDir:
-               if opt.hasPrefix("-") {
-                  throw Error.missingInputDirectoryValue
-               }
+         case .inputDir:
+            if opt.hasPrefix("-") {
+               throw Error.missingInputDirectoryValue
+            }
 
-               inputDir = opt
-               optMode = .normal
+            inputDir = opt
+            optMode = .normal
  
-            case .outputDir:
-               if opt.hasPrefix("-") {
-                  throw Error.missingOutputDirectoryValue
-               }
+         case .outputDir:
+            if opt.hasPrefix("-") {
+               throw Error.missingOutputDirectoryValue
+            }
 
-               outputDir = opt
-               optMode = .normal
+            outputDir = opt
+            optMode = .normal
+
+         case .packages:
+            packages.append(opt)
+            optMode = .normal
                
-            case .normal:
+         case .normal:
             switch opt {
             case "-i": fallthrough
             case "--input-dir":
@@ -74,6 +82,10 @@ class ParsedConfiguration : Configuration {
             case "-o": fallthrough
             case "--output-dir":
                optMode = .outputDir
+
+            case "-p": fallthrough
+            case "--import-package":
+               optMode = .packages
 
             case "-r": fallthrough
             case "--recursive":
@@ -109,6 +121,7 @@ class ParsedConfiguration : Configuration {
       self.isVerbose = verbose ?? false
       self.isDebug = debug ?? false
       self.isRecursive = recursive ?? false
+      self.importPackages = packages
    }
 }
 
@@ -127,6 +140,10 @@ extension ParsedConfiguration : CustomStringConvertible {
 
       if isDebug {
          desc += ", Debug"
+      }
+      
+      if importPackages.count > 0 {
+         desc += ", Packages: \(importPackages)"
       }
       desc += "]"
       return desc

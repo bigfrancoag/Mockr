@@ -1,6 +1,7 @@
 import Foundation
 
 protocol Configuration {
+   var importPackages: [String] { get }
    var sourceDirectoryName: String { get }
    var outputDirectoryName: String { get }
    var isVerbose: Bool { get }
