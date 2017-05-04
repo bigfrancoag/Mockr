@@ -71,12 +71,21 @@ extension ProtocolElement {
          let genericParams = genericTypeParams ?? ""
          let validateMethodLine = validateMethodParams.characters.count > 1 ? "   func validate\(simpleMethodName)\(genericParams)(_ block: (\(validateMethodParams)) -> Void) {\n      block(\(inputParamsAsArgs))\n   }\n" : ""
 
-         //TODO: Handle optionals and iuo
          let needsBackingVar = returnType.map { $0 != "Void" } ?? false
          let backingVarLine = needsBackingVar ? returnType.map { "   private(set) var \(backingVarName): \($0)!\n" } ?? "" : ""
          let returnLine = needsBackingVar ? "      return \(backingVarName)\n" : ""
          let returnSetterLine = needsBackingVar ? returnType.map { "   func \(simpleMethodName)(returns value: \($0)) {\n      \(backingVarName) = value\n   }\n" } ?? "" : ""
-         let methodBodyLine = inputParamVarNamesWithTypes.map {"      \($0.varName) = \($0.argName)\n" }.joined(separator: "") 
+
+         //TODO: if a parameter is a callback:
+         //        - generate a method to set input params for the callback
+         //        - generate a method to set the return value for the callback
+         //        - if it is @escaping:
+         //            - put it in a dispatch timer queue and call it
+         //        - if it is not escaping:
+         //            - immediately call it in the methodbody line
+         let methodBodyLine = "      \(callCountVarName) = \(callCountVarName) + 1\n" +
+            inputParamVarNamesWithTypes.map {"      \($0.varName) = \($0.argName)\n" }.joined(separator: "") 
+         
 
          return
             "   //MARK: Synthesized Mock Method: \(fullMethodName)\n" +

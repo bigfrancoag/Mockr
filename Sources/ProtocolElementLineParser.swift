@@ -84,7 +84,7 @@ class ProtocolElementLineParser {
       config.debug("genericTypeParams: \(String(describing: genericTypeParams))")
       config.debug("parametersString: \(parametersString)")
 
-      //TODO: handle inner and outer param labels
+      //TODO: Handle tuple types for parameters
       let parameterStringParts: [String] = parametersString.components(separatedBy: CharacterSet(charactersIn: ","))
       let parameters: [(outerLabel: String, name: String, type: String)] = parameterStringParts
          .map { paramString in
