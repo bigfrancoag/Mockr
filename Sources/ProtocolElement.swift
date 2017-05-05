@@ -16,7 +16,6 @@ extension ProtocolElement {
          let setVarName = "\(varName)SetCallCount"
          let getVarName = "\(varName)GetCallCount"
 
-         //TODO: Handle optionals and iuo
          let backingVarName = "_\(varName)LastValue"
          let isOptional = varType.hasSuffix("?") ||  varType.hasSuffix("!") 
          let backingVarType = isOptional ? varType : "\(varType)!"
@@ -49,7 +48,6 @@ extension ProtocolElement {
             .replacingOccurrences(of: ")", with: "")
             .replacingOccurrences(of: ":", with: "_")
 
-         //TODO handle optionals and iuo
          let inputParamVarNamesWithTypes: [(varName: String, type: String, argName: String)] = parameters.map {
             let backingParamType: String
             if $0.type.contains("->") {
