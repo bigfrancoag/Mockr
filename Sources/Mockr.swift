@@ -81,6 +81,28 @@ class Mockr {
       do {
          var contents = try File.read(atPath: path)
 
+         //Strip multiline comments
+         while let openCommentRange = contents.range(of: "/*", range: contents.startIndex ..< contents.endIndex) {
+            guard let closeCommentRange = contents.range(of: "*/", range: openCommentRange.upperBound ..< contents.endIndex) else {
+               config.debug("Invalid protocol file \(path). Multi-line comment not closed")
+               return
+            }
+
+            contents.removeSubrange(openCommentRange.lowerBound ..< closeCommentRange.upperBound)
+         }
+
+         //Strip Single-line Comments
+         contents = contents
+            .components(separatedBy: "\n")
+            .map {
+               $0.replacingOccurrences(
+                  of: "\\s*\\/\\/.*$"
+                  , with: ""
+                  , options: .regularExpression
+                  , range: $0.startIndex ..< $0.endIndex)
+            }
+            .joined(separator: "\n")
+
          //remove get/set for properties.  Will make them all var get/set in the mocks
          //strip attributes.
          //Also makes parsing way easier!
@@ -140,8 +162,6 @@ class Mockr {
       config.debug("found protocol name: \(protocolName)")
       let mockName = "Mock\(protocolName)"
       let fileName = "\(Path.expand(config.outputDirectoryName))/\(mockName).swift"
-      //TODO: Filter multiline comments
-      //TODO: Filter single line comments
       let lines = contents.substring(with: openBracketRange.upperBound ..< range.upperBound)
          .components(separatedBy: CharacterSet.newlines)
          
@@ -181,7 +201,7 @@ class Mockr {
       }
 */
 
-      let imports = config.importPackages.map { "import \($0)" }.joined(separator: "\n")
+      let imports = config.importPackages.map { "@testable import \($0)" }.joined(separator: "\n")
       let fileContents =
          imports +
          "\n" +
