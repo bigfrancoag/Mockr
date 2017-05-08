@@ -8,7 +8,7 @@ class MethodParametersParser {
    private lazy var identifierHead: String = { "[\(self.identifierHeadChars)]" }()
    private lazy var identifierBody: String = { "[\(self.identifierBodyChars)]" }()
    private lazy var identifier: String = { "\(self.identifierHead)\(self.identifierBody)*" }()
-   private lazy var typeName: String { "\(?:inout\\s*)?\(namespacedIdentifier)(?:\\?|\\!)?"
+   private lazy var typeName: String = { "(?:inout\\s*)?\(identifier)(?:\\?|\\!)?" }()
 
    //TODO: Remove, testing only
    func testParsing(_ lines: [String] ) {
