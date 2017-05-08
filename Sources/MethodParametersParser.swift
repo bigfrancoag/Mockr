@@ -80,37 +80,97 @@ class MethodParametersParser {
    }
 
    private func parseType(_ line: String) -> (type: String, remaining: String)? {
-
       var typeLine = line.trimmingCharacters(in: CharacterSet.whitespaces)
+      print("DEBUG: parsing type from: \(typeLine)")
 
       guard !typeLine.isEmpty else {
          return nil
       }
 
-      //1) try basic type name:
-      //   - take substring from start to ','
-      //   - if it matches an identifer, we're good
-      //   - if no comma, then we're at the end.  This means the whole this is a type
-
-      guard let commaRange = typeLine.rangeOfCharacter(from: CharacterSet([","])) else {
-         return (type: typeLine, remaining: "")
-      }
 
       switch typeLine.characters.first.map({ "\($0)" }) {
       case "["?:
          //TODO: Handle Array types
-         return nil
+         var remainingCloseBrackets = 1
+         var endIndexOffset = 1
+         var characters = typeLine.characters.dropFirst().makeIterator()
+         while remainingCloseBrackets > 0
+            , let nextChar = characters.next() {
+            if nextChar == "]" {
+               remainingCloseBrackets = remainingCloseBrackets - 1
+            } else if nextChar == "[" {
+               remainingCloseBrackets = remainingCloseBrackets + 1
+            }
+            endIndexOffset = endIndexOffset + 1
+         }
+         let endIndex = typeLine.index(typeLine.startIndex, offsetBy: endIndexOffset)
+         let arrayType = typeLine.substring(to: endIndex)
+         var remaining = typeLine.substring(from: endIndex)
+         remaining = remaining.trimmingCharacters(in: CharacterSet.whitespaces)
+         if remaining.hasPrefix(",") {
+            remaining = remaining.substring(from: remaining.index(after: remaining.startIndex))
+            remaining = remaining.trimmingCharacters(in: CharacterSet.whitespaces)
+         }
+         return (type: arrayType, remaining: remaining)
    
       case "("?:
          //TODO: Handle Tuple types
          //TODO: Handle Function types
-         return nil
+         var remainingCloseParenthesis = 1
+         var endIndexOffset = 1
+         var characters = typeLine.characters.dropFirst().makeIterator()
+         while remainingCloseParenthesis > 0
+            , let nextChar = characters.next() {
+            if nextChar == ")" {
+               remainingCloseParenthesis = remainingCloseParenthesis - 1
+            } else if nextChar == "(" {
+               remainingCloseParenthesis = remainingCloseParenthesis + 1
+            }
+            endIndexOffset = endIndexOffset + 1
+         }
+         let endIndex = typeLine.index(typeLine.startIndex, offsetBy: endIndexOffset)
+         let tupleType = typeLine.substring(to: endIndex)
+         var remaining = typeLine.substring(from: endIndex)
+         remaining = remaining.trimmingCharacters(in: CharacterSet.whitespaces)
+         if remaining.hasPrefix(",") {
+            //This was a tuple
+            remaining = remaining.substring(from: remaining.index(after: remaining.startIndex))
+            remaining = remaining.trimmingCharacters(in: CharacterSet.whitespaces)
+         } else if remaining.hasPrefix("->") {
+            // This was a function.  TODO: call parseType from remaining after  -> .  THen append that type to this type.
+            remaining = remaining.substring(from: remaining.index(remaining.startIndex, offsetBy: 2))
+            remaining = remaining.trimmingCharacters(in: CharacterSet.whitespaces)
+            
+            guard let (functionReturnType, afterFunctionRemaining) = parseType(remaining) else {
+               return nil
+            }
+            let functionType = "\(tupleType) -> \(functionReturnType)"
 
-      case "@":
+            return (type: functionType, remaining: afterFunctionRemaining)
+         }
+
+         return (type: tupleType, remaining: remaining)
+
+      case "@"?:
          //TODO: Handle Attributes
-         return nil
+         typeLine = typeLine.replacingOccurrences(
+            of: "@\(identifier)(?:\\(.*\\))?"
+            , with: ""
+            , options: .regularExpression
+            , range: typeLine.startIndex ..< typeLine.endIndex)
+
+         return parseType(typeLine)
 
       default:
+         //1) try basic type name:
+         //   - take substring from start to ','
+         //   - if it matches an identifer, we're good
+         //   - if no comma, then we're at the end.  This means the whole this is a type
+
+         guard let commaRange = typeLine.rangeOfCharacter(from: CharacterSet([","])) else {
+            return (type: typeLine, remaining: "")
+         }
+
          let expectedIdentifier = typeLine.substring(with: typeLine.startIndex ..< commaRange.lowerBound).trimmingCharacters(in: CharacterSet.whitespaces)
          guard isValidIdentifier(expectedIdentifier) else {
             //Invalid identifier.  the substring between the start of the line and the comma should only be a valid identifier with optional whitespace

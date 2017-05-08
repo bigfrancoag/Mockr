@@ -32,6 +32,7 @@ class ProtocolElementLineParser {
    } 
 
    private func tryParseMethodLine(_ line: String) -> (line: String, type: ProtocolElement)? {
+      //TODO: Handle more complex return types.
       let methodNameRegexPattern = "\\s+func\\s+(\(identifier))\\s*(\(genericType))?\\s*\\((.*)\\)\\s*(?:(?:->)\\s*(\(typeName)))?"
       let regex = try! NSRegularExpression(pattern: methodNameRegexPattern, options: [])
       let matches = regex.matches(in: line, options: [], range: NSRange(location: 0, length: line.characters.count))
