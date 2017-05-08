@@ -178,18 +178,6 @@ class Mockr {
       while let protocolRange = contents.range(of: "protocol", range: searchRange) {
       
 
-            //TODO: handle properties
-               // - internal|public|private|fileprivate|open (set)?
-               // - dynamic/optional/(mutating|nonmutating)/static
-
-            //TODO: handle protocol accessLevel
-               // - internal|public|private|fileprivate
-
-            //TODO: handle imports 
-
-            //TODO: handle funcs
-               // - internal|public|private|fileprivate|open (set)?
-
             //TODO: handle subscripts
                // - internal|public|private|fileprivate|open (set)?
 
@@ -198,7 +186,9 @@ class Mockr {
                // - add required to implementation
 
             //TODO: handle associated types (create a Thunk?)
-      }
+
+            //TODO: handle operator overloads
+
 */
 
       let imports = config.importPackages.map { "@testable import \($0)" }.joined(separator: "\n")

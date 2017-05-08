@@ -8,6 +8,7 @@ class MethodParametersParser {
    private lazy var identifierHead: String = { "[\(self.identifierHeadChars)]" }()
    private lazy var identifierBody: String = { "[\(self.identifierBodyChars)]" }()
    private lazy var identifier: String = { "\(self.identifierHead)\(self.identifierBody)*" }()
+   private lazy var typeName: String { "\(?:inout\\s*)?\(namespacedIdentifier)(?:\\?|\\!)?"
 
    //TODO: Remove, testing only
    func testParsing(_ lines: [String] ) {
@@ -90,7 +91,6 @@ class MethodParametersParser {
 
       switch typeLine.characters.first.map({ "\($0)" }) {
       case "["?:
-         //TODO: Handle Array types
          var remainingCloseBrackets = 1
          var endIndexOffset = 1
          var characters = typeLine.characters.dropFirst().makeIterator()
@@ -114,8 +114,6 @@ class MethodParametersParser {
          return (type: arrayType, remaining: remaining)
    
       case "("?:
-         //TODO: Handle Tuple types
-         //TODO: Handle Function types
          var remainingCloseParenthesis = 1
          var endIndexOffset = 1
          var characters = typeLine.characters.dropFirst().makeIterator()
@@ -137,7 +135,8 @@ class MethodParametersParser {
             remaining = remaining.substring(from: remaining.index(after: remaining.startIndex))
             remaining = remaining.trimmingCharacters(in: CharacterSet.whitespaces)
          } else if remaining.hasPrefix("->") {
-            // This was a function.  TODO: call parseType from remaining after  -> .  THen append that type to this type.
+            //TODO: Handle throws, rethrows, and where clauses
+            // This was a function.  TODO: call parseType from remaining after  -> .  Then append that type to this type.
             remaining = remaining.substring(from: remaining.index(remaining.startIndex, offsetBy: 2))
             remaining = remaining.trimmingCharacters(in: CharacterSet.whitespaces)
             
@@ -152,7 +151,6 @@ class MethodParametersParser {
          return (type: tupleType, remaining: remaining)
 
       case "@"?:
-         //TODO: Handle Attributes
          typeLine = typeLine.replacingOccurrences(
             of: "@\(identifier)(?:\\(.*\\))?"
             , with: ""
@@ -162,10 +160,13 @@ class MethodParametersParser {
          return parseType(typeLine)
 
       default:
-         //1) try basic type name:
-         //   - take substring from start to ','
-         //   - if it matches an identifer, we're good
-         //   - if no comma, then we're at the end.  This means the whole this is a type
+         //TODO: Handle params..., i.e. print(_ args: Any...)
+         //TODO: Handle optionals, IUO
+         //TODO: Handle inout
+         //TODO: handle generics
+         //TODO: handle namespaced identifier
+         //TODO: handle protocol composition
+         //TODO: handle protocol metatype (i.e: T.Type, T.Protocol)
 
          guard let commaRange = typeLine.rangeOfCharacter(from: CharacterSet([","])) else {
             return (type: typeLine, remaining: "")
