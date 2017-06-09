@@ -6,6 +6,18 @@
       "reason": null,
       "repositoryURL": "https://github.com/oarrabi/FileUtils.git",
       "version": "0.1.1"
+    },
+    {
+      "package": "ParseKit",
+      "reason": null,
+      "repositoryURL": "git@bitbucket.org:bigfrancoag/parsekit.git",
+      "version": "0.0.11"
+    },
+    {
+      "package": "SwiftProtocolParser",
+      "reason": null,
+      "repositoryURL": "git@bitbucket.org:bigfrancoag/swiftprotocolparser.git",
+      "version": "0.0.3"
     }
   ],
   "version": 1
