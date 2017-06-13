@@ -72,11 +72,32 @@ class Mockr {
    
    private func generateMocksForProtocols(inFile path: String) {
       do {
+         config.log("Reading file: \(path)")
          let contents = try File.read(atPath: path)
          let parser = SwiftProtocolParser.instance
 
          let (imports: imports, protocols: protocols) = parser.parse(contents)
+         config.log("Found \(imports.count) imports and \(protocols.count) protocols")
 
+         guard protocols.count > 0 else {
+            return
+         }
+
+         let testableImportStatements = config.importPackages.map { "@testable import \($0)" }.joined(separator: "\n")
+         let importStatements = imports.toMockString(["separator" : "\n"])
+
+         for proto in protocols {
+            let mockName = "Mock\(proto.name)"
+            let fileName = "\(Path.expand(config.outputDirectoryName))/\(mockName).swift"
+
+            let fileContents = "\(testableImportStatements)\n" +
+               "\(importStatements)\n" +
+               "\n" +
+               "\(proto.toMockString([:]))"
+
+            File.create(atPath: fileName)
+            try File.write(string: fileContents, toPath: fileName)
+         }
       } catch FileError.fileNotFound {
          config.log("WARNING: Could not find the file: \(path)")
          return
