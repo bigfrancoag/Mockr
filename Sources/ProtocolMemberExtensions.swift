@@ -10,7 +10,7 @@ extension ProtocolMember : MockrStringable {
       return propMember.toMockString(userInput)
 
    case .method(let methMember):
-      return "TODO: meth member here"
+      return methMember.toMockString(userInput)
 
    case .sub(let subMember):
       return "TODO: sub member here"
