@@ -24,12 +24,14 @@ extension MethodMember : MockrStringable {
          if parameters.count == 1 {
             let param = parameters[0]
             if param.type.hasSuffix("!") || param.type.hasSuffix("?") {
-               paramBackingType = param.type
+               paramBackingType = stripAttributes(param.type)
+            } else if param.type.contains("->") {
+               paramBackingType = "(\(stripAttributes(param.type)))!"
             } else {
-               paramBackingType = "\(param.type)!"
+               paramBackingType = "\(stripAttributes(param.type))!"
             }
          } else {
-            paramBackingType = "(" + parameters.map { "\($0.localName): \($0.type)" }.joined(separator: ", ") + ")!"
+            paramBackingType = "(" + parameters.map { "\($0.localName): \(stripAttributes($0.type))" }.joined(separator: ", ") + ")!"
          }
       } else {
          paramBackingType = ""
@@ -54,6 +56,17 @@ extension MethodMember : MockrStringable {
          funcDeclaration = modifiers.toMockString(copy) + " " + funcDeclaration
       }
 
+      let accessModifier = modifiers.filter {
+            guard case .access(_) = $0 else { return false }
+            return true
+         }
+         .first
+  
+      //If this method does NOT have an access modifier, and the protocol itself does 
+      if accessModifier == nil, let protocolModifier = userInput["protocolModifier"] {
+         funcDeclaration = protocolModifier + " " + funcDeclaration
+      }
+
       if attributes.count > 0 {
          var copy = userInput
          copy["separator"] = " "
@@ -70,6 +83,10 @@ extension MethodMember : MockrStringable {
          } else {
             funcDeclaration = funcDeclaration + "      \(paramBackingVar) = (\(paramBackingValue))\n"
          }
+      }
+
+      if requiresBackingVar {
+            funcDeclaration = funcDeclaration + "      return \(backingVar)\n"
       }
 
       funcDeclaration = funcDeclaration + "   }\n"
@@ -107,5 +124,12 @@ extension MethodMember : MockrStringable {
          validateFuncDeclaration
       
       return result
+   }
+
+   private func stripAttributes(_ type: String) -> String {
+      return type.replacingOccurrences(of: "@[A-Za-z_][A-Za-z_0-9]*(\\(.*\\))?"
+         , with: ""
+         , options: .regularExpression
+         , range: type.startIndex ..< type.endIndex)
    }
 }

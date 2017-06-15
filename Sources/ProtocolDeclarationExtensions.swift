@@ -10,11 +10,17 @@ extension ProtocolDeclaration : MockrStringable {
          return ascType
       }
 
-      let associatedTypeGenerics: [(name: String, generic: String)] = associatedTypes
-         .enumerated()
-         .map { (name: $0.element.name, generic: "T\($0.offset + 1)") }
+      var copy = userInfo
+      copy["separator"] = ", "
 
-      var thunkClause = associatedTypeGenerics.map { $0.generic }.joined(separator: ", ")
+      let associatedTypeGenerics: [(name: String, generic: String, genericThunk: String)] = associatedTypes
+         .enumerated()
+         .map {
+            let inheritanceType = $0.element.inheritance.isEmpty ? "" : " : " + $0.element.inheritance.toMockString(copy)
+            return (name: $0.element.name, generic: "T\($0.offset + 1)", genericThunk: "T\($0.offset + 1)\(inheritanceType)")
+         }
+
+      var thunkClause = associatedTypeGenerics.map { $0.genericThunk }.joined(separator: ", ")
 
       if !thunkClause.isEmpty {
          thunkClause = "<\(thunkClause)>"
@@ -38,8 +44,12 @@ extension ProtocolDeclaration : MockrStringable {
 
 
          associatedTypeGenerics.forEach {
-               copy[$0.name] = $0.generic
-            }
+            copy[$0.name] = $0.generic
+         }
+
+         if let modifier = accessModifier, modifier != .internalAccess {
+            copy["protocolModifier"] = modifier.toMockString(copy)
+         }
          
          let memberString = members.toMockString(copy)
          result = "\(result)\(memberString)"
