@@ -10,8 +10,7 @@ extension AssociatedTypeMember : MockrStringable {
          line = modifier.toMockString(userInfo) + " " + line
       }
 
-      if attributes.count > 1 {
-         var copy = userInfo
+      if attributes.count > 0 { var copy = userInfo
          copy["separator"] = " "
          line = attributes.toMockString(copy) + " " + line
       }

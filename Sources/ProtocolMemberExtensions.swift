@@ -4,7 +4,7 @@ extension ProtocolMember : MockrStringable {
    func toMockString(_ userInput: [String:String]) -> String {
    switch self {
    case .initializer(let initMember):
-      return "TODO: init member here"
+      return initMember.toMockString(userInput)
 
    case .property(let propMember):
       return propMember.toMockString(userInput)
@@ -13,13 +13,13 @@ extension ProtocolMember : MockrStringable {
       return methMember.toMockString(userInput)
 
    case .sub(let subMember):
-      return "TODO: sub member here"
+      return subMember.toMockString(userInput)
 
    case .associatedType(let ascTypeMember):
       return ascTypeMember.toMockString(userInput)
 
    case .typeAlias(let typeAliasMember):
-      return "TODO: type alias member here"
+      return typeAliasMember.toMockString(userInput)
    }
    }
 }

@@ -8,7 +8,7 @@ extension ImportStatement : MockrStringable {
       }
 
       result = "import \(result)"
-      if attributes.count > 1 {
+      if attributes.count > 0 {
          result = "\(attributes.toMockString(["separator" : " "])) \(result)"
       }
       return result
